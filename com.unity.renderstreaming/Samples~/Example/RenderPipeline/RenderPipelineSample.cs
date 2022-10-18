@@ -7,7 +7,7 @@ namespace Unity.RenderStreaming.Samples
 {
     class RenderPipelineSample : MonoBehaviour
     {
-        [SerializeField] RenderStreaming renderStreaming;
+        [SerializeField] RenderStreamingHandler renderStreamingHandler;
         [SerializeField] VideoStreamSender videoStreamSender;
         [SerializeField] private Dropdown bandwidthSelector;
         [SerializeField] private Dropdown scaleResolutionDownSelector;
@@ -119,9 +119,9 @@ namespace Unity.RenderStreaming.Samples
 
         private void Start()
         {
-            if (!renderStreaming.runOnAwake)
+            if (!renderStreamingHandler.runOnAwake)
             {
-                renderStreaming.Run(signaling: settings?.Signaling);
+                renderStreamingHandler.Run(signaling: settings?.Signaling);
             }
         }
     }

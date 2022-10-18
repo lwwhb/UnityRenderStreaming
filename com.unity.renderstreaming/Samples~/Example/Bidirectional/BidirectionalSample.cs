@@ -7,7 +7,7 @@ namespace Unity.RenderStreaming.Samples
     class BidirectionalSample : MonoBehaviour
     {
 #pragma warning disable 0649
-        [SerializeField] private RenderStreaming renderStreaming;
+        [SerializeField] private RenderStreamingHandler renderStreamingHandler;
         [SerializeField] private Dropdown webcamSelectDropdown;
         [SerializeField] private Dropdown microphoneSelectDropdown;
         [SerializeField] private Button startButton;
@@ -74,9 +74,9 @@ namespace Unity.RenderStreaming.Samples
 
         void Start()
         {
-            if (renderStreaming.runOnAwake)
+            if (renderStreamingHandler.runOnAwake)
                 return;
-            renderStreaming.Run(signaling: settings?.Signaling);
+            renderStreamingHandler.Run(signaling: settings?.Signaling);
         }
 
         private void SetUp()

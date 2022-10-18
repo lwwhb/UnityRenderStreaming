@@ -6,7 +6,7 @@ namespace Unity.RenderStreaming
 {
     public class AutomaticStreaming : MonoBehaviour
     {
-        private RenderStreaming renderstreaming;
+        private RenderStreamingHandler renderstreaming;
         private Broadcast broadcast;
         private VideoStreamSender videoStreamSender;
         private AudioStreamSender audioStreamSender;
@@ -26,7 +26,7 @@ namespace Unity.RenderStreaming
             broadcast.AddComponent(videoStreamSender);
             broadcast.AddComponent(audioStreamSender);
 
-            renderstreaming = gameObject.AddComponent<RenderStreaming>();
+            renderstreaming = gameObject.AddComponent<RenderStreamingHandler>();
             renderstreaming.Run(StreamingSetting.GetSignaling(), new SignalingHandlerBase[] {broadcast});
 
             SceneManager.activeSceneChanged += (prev, current) =>

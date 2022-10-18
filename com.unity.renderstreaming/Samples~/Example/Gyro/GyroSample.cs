@@ -11,7 +11,7 @@ namespace Unity.RenderStreaming.Samples
     class GyroSample : MonoBehaviour
     {
 #pragma warning disable 0649
-            [SerializeField] private RenderStreaming renderStreaming;
+            [SerializeField] private RenderStreamingHandler renderStreamingHandler;
             [SerializeField] private Button sendOfferButton;
             [SerializeField] private RawImage remoteVideoImage;
             [SerializeField] private VideoStreamReceiver receiveVideoViewer;
@@ -44,9 +44,9 @@ namespace Unity.RenderStreaming.Samples
 
         void Start()
         {
-            if (renderStreaming.runOnAwake)
+            if (renderStreamingHandler.runOnAwake)
                 return;
-            renderStreaming.Run(signaling: settings?.Signaling);
+            renderStreamingHandler.Run(signaling: settings?.Signaling);
         }
 
         void OnEnable()

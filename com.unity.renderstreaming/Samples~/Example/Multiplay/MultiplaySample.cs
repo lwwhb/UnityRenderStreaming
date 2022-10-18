@@ -11,7 +11,7 @@ namespace Unity.RenderStreaming.Samples
         [SerializeField] ToggleGroup toggleGroupRole;
         [SerializeField] InputField inputFieldUsername;
         [SerializeField] Button buttonStart;
-        [SerializeField] RenderStreaming renderStreaming;
+        [SerializeField] RenderStreamingHandler renderStreamingHandler;
         [SerializeField] GameObject prefabHost;
         [SerializeField] GameObject prefabGuest;
         [SerializeField] GameObject prefabPlayer;
@@ -87,7 +87,7 @@ namespace Unity.RenderStreaming.Samples
             playerController.CheckPairedDevices();
 
             statsUI.AddSignalingHandler(handler);
-            renderStreaming.Run(signaling: settings?.Signaling,
+            renderStreamingHandler.Run(signaling: settings?.Signaling,
                 handlers: new SignalingHandlerBase[] {handler}
             );
         }
@@ -98,7 +98,7 @@ namespace Unity.RenderStreaming.Samples
             var handler = guestPlayer.GetComponent<SingleConnection>();
 
             statsUI.AddSignalingHandler(handler);
-            renderStreaming.Run(signaling: settings?.Signaling,
+            renderStreamingHandler.Run(signaling: settings?.Signaling,
                 handlers: new SignalingHandlerBase[] {handler}
             );
 

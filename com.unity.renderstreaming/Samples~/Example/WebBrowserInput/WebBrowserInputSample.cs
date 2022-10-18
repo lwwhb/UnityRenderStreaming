@@ -5,7 +5,7 @@ namespace Unity.RenderStreaming.Samples
 {
     class WebBrowserInputSample : MonoBehaviour
     {
-        [SerializeField] RenderStreaming renderStreaming;
+        [SerializeField] RenderStreamingHandler renderStreamingHandler;
         [SerializeField] Dropdown dropdownCamera;
         [SerializeField] Transform[] cameras;
         [SerializeField] CopyTransform copyTransform;
@@ -22,9 +22,9 @@ namespace Unity.RenderStreaming.Samples
         {
             dropdownCamera.onValueChanged.AddListener(OnChangeCamera);
 
-            if (!renderStreaming.runOnAwake)
+            if (!renderStreamingHandler.runOnAwake)
             {
-                renderStreaming.Run(signaling: settings?.Signaling);
+                renderStreamingHandler.Run(signaling: settings?.Signaling);
             }
         }
 
