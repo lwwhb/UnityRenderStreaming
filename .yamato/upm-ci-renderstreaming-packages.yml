@@ -76,9 +76,9 @@ build_{{ package.name }}_{{ editor.version }}_android_{{ target.name }}:
     - |
       find upm-ci~/packages/ -name "*.tgz" | xargs -I file tar xvf file -C upm-ci~
       cp -rf upm-ci~/package/Runtime/Plugins Runtime/
-{% if target.name == "vulkan" -%}
+{% if target.name == "vulkan" %}
       cp -f TestProjects/Empty/ProjectSettings/ProjectSettings-android-vulkan.asset TestProjects/Empty/ProjectSettings/ProjectSettings.asset
-{% endif -%}
+{% endif %}
     - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
     - unity-downloader-cli -c Editor -c Android -u {{ editor.version }} --fast -w
     - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools/utr-standalone/utr --output utr
@@ -139,7 +139,7 @@ test_{{ package.name }}_{{ param.platform }}_{{ param.backend }}_{{ platform.nam
     - pip config set global.index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
     - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
     - npm install upm-ci-utils@{{ upm.package_version }} -g --registry {{ upm.registry_url }}
-{% if platform.name == "win" %}
+{% if platform.name == "win" or platform.name == "win-gpu" %}
     - |
       set WEBAPP_PATH=%cd%\Webapp\bin~\{{ platform.packed_webapp_name }}
       upm-ci package test -u {{ editor.version }} --package-path {{ package.packagename }} --platform {{ param.platform }} --backend {{ param.backend }} --extra-utr-arg="--timeout=3000" --enable-load-and-test-isolation
@@ -170,11 +170,11 @@ test_{{ project.name }}_{{ param.platform }}_{{ param.backend }}_{{ platform.nam
     - pip config set global.index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
     - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
     - npm install upm-ci-utils@{{ upm.package_version }} -g --registry {{ upm.registry_url }}
-{% if platform.name != "win" %}
+{% if platform.name != "win" and platform.name != "win-gpu" %}
     - find ./{{ package.packagename }} -type l -exec bash -c 'sh BuildScripts~/convert_symlinks.sh "$0"' {} \;
 {% endif %}
     - upm-ci project pack --project-path {{ project.path }}
-{% if platform.name == "win" %}
+{% if platform.name == "win" or platform.name == "win-gpu" %}
     - |
       set WEBAPP_PATH=%cd%\Webapp\bin~\{{ platform.packed_webapp_name }}
       upm-ci project test -u {{ editor.version }} --project-path {{ project.path }} --platform {{ param.platform }} --backend {{ param.backend }} --extra-utr-arg="--timeout=3000"
@@ -313,17 +313,17 @@ test_{{ project.name }}_{{ param.platform }}_{{ param.backend }}_{{ platform.nam
     - .yamato/upm-ci-webapp.yml#pack_{{ platform.packed_webapp_platform }}
 {% endfor %}
 {% endfor %}
-{% endif -%}
+{% endif %}
 {% endfor %}
 
 trigger_test_{{ package.name }}_{{ editor.version }}:
   name : Trigger test {{ package.packagename }} {{ editor.version }} all platforms
   dependencies:
     - .yamato/upm-ci-{{ package.name }}-packages.yml#test_{{ package.name }}_{{ editor.version }}
-{% if editor.version == "2020.3" -%}
+{% if editor.version == "2020.3" %}
   triggers:
     expression: pull_request.target eq "develop"
-{% endif -%}
+{% endif %}
 
 test_{{ package.name }}_{{ editor.version }}:
   name : Test {{ package.packagename }} {{ editor.version }} all platforms
@@ -382,10 +382,10 @@ publish_dry_run_{{ package.name }}:
   dependencies:
     - .yamato/upm-ci-renderstreaming-packages.yml#pack_{{ package.name }}
 {% for editor in editors %}
-{% if editor.version != "trunk" -%} # exclude trunk to test
-    - .yamato/upm-ci-renderstreaming-packages.yml#test_{{ package.name }}_editmode_mono_win_{{ editor.version }}
+{% if editor.version != "trunk" %} # exclude trunk to test
+    - .yamato/upm-ci-renderstreaming-packages.yml#test_{{ package.name }}_editmode_mono_win-gpu_{{ editor.version }}
     - .yamato/upm-ci-renderstreaming-packages.yml#test_{{ package.name }}_editmode_mono_macos_{{ editor.version }}
-    - .yamato/upm-ci-renderstreaming-packages.yml#test_{{ package.name }}_editmode_mono_linux_{{ editor.version }}
+    - .yamato/upm-ci-renderstreaming-packages.yml#test_{{ package.name }}_editmode_mono_linux-gpu_{{ editor.version }}
 {% endif %}
 {% endfor %}
 
@@ -427,7 +427,7 @@ codecoverage_{{ package.packagename }}_{{ platform.name }}_{{ editor.version }}:
     - pip config set global.index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
     - pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
     - npm install upm-ci-utils@{{ upm.package_version }} -g --registry {{ upm.registry_url }}
-{% if platform.name == "win" %}
+{% if platform.name == "win" or platform.name == "win-gpu" %}
     - |
       set WEBAPP_PATH=%cd%\Webapp\bin~\{{ platform.packed_webapp_name }}
       upm-ci package test -u {{ editor.version }} --package-path {{ package.packagename }} --enable-code-coverage --code-coverage-options "generateAdditionalMetrics;generateHtmlReport;generateBadgeReport;assemblyFilters:-UnityEngine.*,+Unity.RenderStreaming" --extra-utr-arg="--timeout=3000"
