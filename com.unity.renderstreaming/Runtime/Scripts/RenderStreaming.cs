@@ -11,7 +11,7 @@ namespace Unity.RenderStreaming
 #if UNITY_EDITOR
     [InitializeOnLoad]
 #endif
-    internal static class StreamingSetting
+    internal static class RenderStreaming
     {
         public static bool IsAutomaticEnabled()
         {
@@ -29,7 +29,7 @@ namespace Unity.RenderStreaming
             return signaling;
         }
 
-        static StreamingSetting()
+        static RenderStreaming()
         {
             // load settings
 #if UNITY_EDITOR

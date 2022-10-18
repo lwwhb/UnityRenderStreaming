@@ -27,7 +27,7 @@ namespace Unity.RenderStreaming
             broadcast.AddComponent(audioStreamSender);
 
             renderstreaming = gameObject.AddComponent<RenderStreamingHandler>();
-            renderstreaming.Run(StreamingSetting.GetSignaling(), new SignalingHandlerBase[] {broadcast});
+            renderstreaming.Run(RenderStreaming.GetSignaling(), new SignalingHandlerBase[] {broadcast});
 
             SceneManager.activeSceneChanged += (prev, current) =>
             {
