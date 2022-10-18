@@ -167,8 +167,6 @@ namespace Unity.RenderStreaming
             get { return m_Source; }
             set
             {
-                if (isPlaying)
-                    throw new InvalidOperationException("Can not change this parameter after the streaming is started.");
                 m_Source = value;
                 if (m_Texture != null)
                 {
@@ -406,8 +404,6 @@ namespace Unity.RenderStreaming
         /// <param name="size"></param>
         public void SetTextureSize(Vector2Int size)
         {
-            if (m_Source == VideoStreamSource.Texture)
-                throw new InvalidOperationException("Video source is set Texture.");
             m_TextureSize = size;
 
             if (isPlaying)

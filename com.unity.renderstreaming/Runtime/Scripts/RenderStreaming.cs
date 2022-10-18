@@ -49,7 +49,7 @@ namespace Unity.RenderStreaming
         static void InitializeOnEditor()
         {
             /// todo(kazuki):: This is workaround.
-            /// When kicking the Unity Editor with batchmode flag on command line, The Unity Editor crashes 
+            /// When kicking the Unity Editor with batchmode flag on command line, The Unity Editor crashes
             /// caused by not unloading WebRTC native plugin. By this workaround, Some static methods of this
             /// package don't work correctly when batchmode. These static methods depend on WebRTC API,
             /// therefore the package initialization must be completed just after launching Editor.
@@ -190,7 +190,7 @@ namespace Unity.RenderStreaming
 
         void Awake()
         {
-            if (!runOnAwake || m_running)
+            if (!runOnAwake || m_running || handlers.Count == 0)
                 return;
 
             RTCConfiguration conf = new RTCConfiguration { iceServers = iceServers };

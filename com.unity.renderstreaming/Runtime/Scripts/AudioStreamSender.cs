@@ -74,8 +74,6 @@ namespace Unity.RenderStreaming
             get { return m_Source; }
             set
             {
-                if (isPlaying)
-                    throw new InvalidOperationException("Can not change this parameter after the streaming is started.");
                 m_Source = value;
             }
         }
@@ -140,8 +138,6 @@ namespace Unity.RenderStreaming
             get { return m_AudioListener; }
             set
             {
-                if (isPlaying)
-                    throw new InvalidOperationException("Can not change this parameter after the streaming is started.");
                 m_AudioListener = value;
             }
         }
