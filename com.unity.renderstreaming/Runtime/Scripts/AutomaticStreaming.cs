@@ -1,4 +1,5 @@
 using System;
+using Unity.WebRTC;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -13,14 +14,17 @@ namespace Unity.RenderStreaming
 
         private void Awake()
         {
+            gameObject.hideFlags = HideFlags.HideInHierarchy;
+
             videoStreamSender = gameObject.AddComponent<VideoStreamSender>();
             videoStreamSender.source = VideoStreamSource.Screen;
             videoStreamSender.SetTextureSize(new Vector2Int(Screen.width, Screen.height));
 
+            audioStreamSender = gameObject.AddComponent<AudioStreamSender>();
+            audioStreamSender.source = AudioStreamSource.APIOnly;
             var audioListener = FindObjectOfType<AudioListener>();
-            audioStreamSender = audioListener.gameObject.AddComponent<AudioStreamSender>();
-            audioStreamSender.source = AudioStreamSource.AudioListener;
-            audioStreamSender.audioListener = audioListener;
+            var autoFilter = audioListener.gameObject.AddComponent<AutoAudioFilter>();
+            autoFilter.SetSender(audioStreamSender);
 
             broadcast = gameObject.AddComponent<Broadcast>();
             broadcast.AddComponent(videoStreamSender);
@@ -29,12 +33,15 @@ namespace Unity.RenderStreaming
             renderstreaming = gameObject.AddComponent<RenderStreamingHandler>();
             renderstreaming.Run(RenderStreaming.GetSignaling(), new SignalingHandlerBase[] {broadcast});
 
-            SceneManager.activeSceneChanged += (prev, current) =>
+            SceneManager.activeSceneChanged += (scene1, scene2) =>
             {
                 var audioListener = FindObjectOfType<AudioListener>();
-                if (audioListener != audioStreamSender.audioListener)
+                if (audioListener.gameObject.GetComponent<AutoAudioFilter>() != null)
                 {
+                    return;
                 }
+                var autoFilter = audioListener.gameObject.AddComponent<AutoAudioFilter>();
+                autoFilter.SetSender(audioStreamSender);
             };
         }
 
@@ -43,8 +50,54 @@ namespace Unity.RenderStreaming
             renderstreaming = null;
             broadcast = null;
             videoStreamSender = null;
-            DestroyImmediate(audioStreamSender);
             audioStreamSender = null;
+        }
+
+        class AutoAudioFilter : MonoBehaviour
+        {
+            private AudioStreamSender sender;
+            private int m_sampleRate;
+
+            public void SetSender(AudioStreamSender sender)
+            {
+                this.sender = sender;
+            }
+
+            private void Awake()
+            {
+                this.hideFlags = HideFlags.HideInInspector;
+            }
+
+            private void OnEnable()
+            {
+                OnAudioConfigurationChanged(false);
+                AudioSettings.OnAudioConfigurationChanged += OnAudioConfigurationChanged;
+            }
+
+            private void OnDisable()
+            {
+                AudioSettings.OnAudioConfigurationChanged -= OnAudioConfigurationChanged;
+            }
+
+            private void OnAudioConfigurationChanged(bool deviceWasChanged)
+            {
+                m_sampleRate = AudioSettings.outputSampleRate;
+            }
+
+            private void OnAudioFilterRead(float[] data, int channels)
+            {
+                if (sender.source != AudioStreamSource.APIOnly)
+                {
+                    return;
+                }
+
+                sender?.SetData(data, channels, m_sampleRate);
+            }
+
+            private void OnDestroy()
+            {
+                sender = null;
+            }
         }
     }
 }
