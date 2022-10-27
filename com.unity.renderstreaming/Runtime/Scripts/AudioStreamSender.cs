@@ -24,7 +24,11 @@ namespace Unity.RenderStreaming
         /// <summary>
         /// 
         /// </summary>
-        Microphone = 2
+        Microphone = 2,
+        /// <summary>
+        /// 
+        /// </summary>
+        APIOnly = 3
     }
 
     /// <summary>
@@ -143,10 +147,34 @@ namespace Unity.RenderStreaming
         }
 
         /// <summary>
+        /// support on AudioStreamSource.APIOnly source type
+        /// </summary>
+        /// <param name="array"></param>
+        /// <param name="channels"></param>
+        /// <param name="sampleRate"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        public void SetData(float[] array, int channels, int sampleRate)
+        {
+            if (m_sourceImpl == null)
+            {
+                return;
+            }
+
+            if (m_sourceImpl is AudioStreamSourceAPI sourceImpl)
+            {
+                sourceImpl.SetData(array, channels, sampleRate);
+            }
+            else
+            {
+                throw new InvalidOperationException($"current source type is not {nameof(AudioStreamSource.APIOnly)}.");
+            }
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
-        static public IEnumerable<AudioCodecInfo> GetAvailableCodecs()
+        public static IEnumerable<AudioCodecInfo> GetAvailableCodecs()
         {
             var excludeCodecMimeType = new[] { "audio/CN", "audio/telephone-event" };
             var capabilities = RTCRtpSender.GetCapabilities(TrackKind.Audio);
@@ -248,6 +276,8 @@ namespace Unity.RenderStreaming
                     return new AudioStreamSourceAudioSource(this);
                 case AudioStreamSource.Microphone:
                     return new AudioStreamSourceMicrophone(this);
+                case AudioStreamSource.APIOnly:
+                    return new AudioStreamSourceAPI(this);
             }
             throw new InvalidOperationException("");
         }
@@ -445,6 +475,44 @@ namespace Unity.RenderStreaming
             }
 
             ~AudioStreamSourceMicrophone()
+            {
+                Dispose();
+            }
+        }
+
+        class AudioStreamSourceAPI : AudioStreamSourceImpl
+        {
+            AudioStreamTrack m_audioTrack;
+
+            public AudioStreamSourceAPI(AudioStreamSender parent) : base(parent)
+            {
+            }
+
+            public override WaitForCreateTrack CreateTrack()
+            {
+                var instruction = new WaitForCreateTrack();
+                m_audioTrack = new AudioStreamTrack();
+                instruction.Done(m_audioTrack);
+                return instruction;
+            }
+
+            public void SetData(float[] array, int channels, int sampleRate)
+            {
+                if (m_audioTrack == null || m_audioTrack.ReadyState != TrackState.Live)
+                {
+                    return;
+                }
+
+                m_audioTrack.SetData(array, channels, sampleRate);
+            }
+
+            public override void Dispose()
+            {
+                m_audioTrack = null;
+                GC.SuppressFinalize(this);
+            }
+
+            ~AudioStreamSourceAPI()
             {
                 Dispose();
             }
