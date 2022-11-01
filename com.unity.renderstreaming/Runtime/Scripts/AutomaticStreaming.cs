@@ -31,7 +31,9 @@ namespace Unity.RenderStreaming
             broadcast.AddComponent(audioStreamSender);
 
             renderstreaming = gameObject.AddComponent<RenderStreamingHandler>();
-            renderstreaming.Run(RenderStreaming.GetSignaling(), new SignalingHandlerBase[] {broadcast});
+            renderstreaming.AddSignalingHandler(broadcast);
+            renderstreaming.settings = RenderStreaming.SignalingSettings;
+            renderstreaming.Run();
 
             SceneManager.activeSceneChanged += (scene1, scene2) =>
             {
@@ -47,6 +49,7 @@ namespace Unity.RenderStreaming
 
         private void OnDestroy()
         {
+            renderstreaming.Stop();
             renderstreaming = null;
             broadcast = null;
             videoStreamSender = null;

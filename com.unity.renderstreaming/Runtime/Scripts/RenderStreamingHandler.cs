@@ -38,11 +38,17 @@ namespace Unity.RenderStreaming
         /// </summary>
         [SerializeField, Tooltip("Automatically started when called Awake method.")]
         public bool runOnAwake = true;
+
+        [SerializeField] public SignalingSettings settings;
 #pragma warning restore 0649
 
         private RenderStreamingInternal m_instance;
         private SignalingEventProvider m_provider;
         private bool m_running;
+
+        public bool Running => m_running;
+        public IReadOnlyList<SignalingHandlerBase> HandlerBases => handlers;
+
 
 #if UNITY_EDITOR
         [InitializeOnLoadMethod]
@@ -79,6 +85,34 @@ namespace Unity.RenderStreaming
         }
 #endif
 
+        public void AddSignalingHandler(SignalingHandlerBase handlerBase)
+        {
+            if (handlers.Contains(handlerBase))
+            {
+                return;
+            }
+            handlers.Add(handlerBase);
+
+            if (!m_running)
+            {
+                return;
+            }
+            handlerBase.SetHandler(m_instance);
+            m_provider.Subscribe(handlerBase);
+        }
+
+        public void RemoveSignalingHandler(SignalingHandlerBase handlerBase)
+        {
+            handlers.Remove(handlerBase);
+
+            if (!m_running)
+            {
+                return;
+            }
+            handlerBase.SetHandler(null);
+            m_provider.Unsubscribe(handlerBase);
+        }
+
         static Type GetType(string typeName)
         {
             var type = Type.GetType(typeName);
@@ -100,6 +134,28 @@ namespace Unity.RenderStreaming
             }
             object[] args = { url, interval, context };
             return (ISignaling)Activator.CreateInstance(_type, args);
+        }
+
+        static ISignaling CreateSignaling(SignalingSettings settings, SynchronizationContext context)
+        {
+            switch (settings.signalingType)
+            {
+                case SignalingType.WebSocket:
+                    return new WebSocketSignaling(settings.urlSignaling, settings.interval, context);
+                case SignalingType.Http:
+                    return new HttpSignaling(settings.urlSignaling, settings.interval, context);
+                case SignalingType.Furioos:
+                    return new FurioosSignaling(settings.urlSignaling, settings.interval, context);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(settings.signalingType), settings.signalingType, null);
+            }
+        }
+
+        public void Run()
+        {
+            var signaling = CreateSignaling(settings, SynchronizationContext.Current);
+            var conf = new RTCConfiguration {iceServers = settings.iceServers};
+            _Run(conf, signaling, handlers.ToArray());
         }
 
         /// <summary>
@@ -164,8 +220,6 @@ namespace Unity.RenderStreaming
                 resentOfferInterval = interval,
             };
             var _handlers = (handlers ?? this.handlers.AsEnumerable()).Where(_ => _ != null);
-            if (_handlers.Count() == 0)
-                throw new InvalidOperationException("Handler list is empty.");
 
             m_instance = new RenderStreamingInternal(ref dependencies);
             m_provider = new SignalingEventProvider(m_instance);
@@ -185,6 +239,8 @@ namespace Unity.RenderStreaming
         {
             m_instance?.Dispose();
             m_instance = null;
+
+            m_provider = null;
             m_running = false;
         }
 

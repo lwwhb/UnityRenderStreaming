@@ -1,4 +1,5 @@
 using System;
+using Unity.WebRTC;
 using UnityEngine;
 
 namespace Unity.RenderStreaming
@@ -10,15 +11,25 @@ namespace Unity.RenderStreaming
         public CodecSettings codecSettings;
     }
 
+    public enum SignalingType
+    {
+        WebSocket,
+        Http,
+        Furioos
+    }
+
     [Serializable]
     public class SignalingSettings
     {
-
+        public bool runOnAwake;
+        public string urlSignaling = "http://localhost";
+        public SignalingType signalingType = SignalingType.WebSocket;
+        public RTCIceServer[] iceServers;
+        public float interval = 5.0f;
     }
 
     [Serializable]
     public class CodecSettings
     {
-
     }
 }

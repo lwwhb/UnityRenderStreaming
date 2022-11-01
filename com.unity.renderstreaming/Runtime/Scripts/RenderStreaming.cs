@@ -1,5 +1,6 @@
 using System.Threading;
 using Unity.RenderStreaming.Signaling;
+using Unity.WebRTC;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -11,24 +12,30 @@ namespace Unity.RenderStreaming
 #if UNITY_EDITOR
     [InitializeOnLoad]
 #endif
-    internal static class RenderStreaming
+    public static class RenderStreaming
     {
         private static RenderStreamingSettings s_Settings;
 
         public static bool IsAutomaticEnabled()
         {
             //todo: detected by settings
-            return true;
+            return false;
         }
 
-        public static ISignaling GetSignaling()
+        public static SignalingSettings SignalingSettings
         {
-            var schema = false ? "wss" : "ws";
-            var address = "localhost:3000";
-            var signalingInterval = 5;
-            var signaling = new WebSocketSignaling(
-                $"{schema}://{address}", signalingInterval, SynchronizationContext.Current);
-            return signaling;
+            get
+            {
+                var setting = new SignalingSettings();
+                setting.signalingType = SignalingType.WebSocket;
+                setting.urlSignaling = "ws://localhost:3000";
+                setting.iceServers = new RTCIceServer[]
+                {
+                    new RTCIceServer() {urls = new string[] {"stun:stun.l.google.com:19302"}}
+                };
+                setting.interval = 5;
+                return setting;
+            }
         }
 
         static RenderStreaming()
